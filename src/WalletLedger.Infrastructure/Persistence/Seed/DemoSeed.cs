@@ -3,6 +3,7 @@ using WalletLedger.Application.Abstractions;
 using WalletLedger.Domain.Accounts;
 using WalletLedger.Domain.Common;
 using WalletLedger.Domain.Ledger;
+using WalletLedger.Domain.Pix;
 using WalletLedger.Domain.Users;
 
 namespace WalletLedger.Infrastructure.Persistence.Seed;
@@ -56,6 +57,7 @@ public static class DemoSeed
 
             var account = Account.OpenForCustomer(user.Id, now);
             db.Accounts.Add(account);
+            db.PixKeys.Add(PixKey.Create(account.Id, PixKeyType.Email, email, now));
 
             // Saldo inicial entra como um depósito de verdade no razão, nunca editando o saldo.
             var amount = Money.FromCents(InitialBalanceCents);

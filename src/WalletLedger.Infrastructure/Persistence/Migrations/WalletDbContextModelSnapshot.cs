@@ -187,6 +187,46 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                     b.ToTable("postings", (string)null);
                 });
 
+            modelBuilder.Entity("WalletLedger.Domain.Pix.PixKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("type");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pix_keys");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("ix_pix_keys_account_id");
+
+                    b.HasIndex("Value")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pix_keys_value");
+
+                    b.ToTable("pix_keys", (string)null);
+                });
+
             modelBuilder.Entity("WalletLedger.Domain.Users.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -323,6 +363,16 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_postings_transactions_transaction_id");
+                });
+
+            modelBuilder.Entity("WalletLedger.Domain.Pix.PixKey", b =>
+                {
+                    b.HasOne("WalletLedger.Domain.Accounts.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pix_keys_accounts_account_id");
                 });
 
             modelBuilder.Entity("WalletLedger.Domain.Users.RefreshToken", b =>

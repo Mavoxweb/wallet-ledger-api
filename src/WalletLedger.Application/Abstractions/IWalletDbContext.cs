@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using WalletLedger.Domain.Accounts;
 using WalletLedger.Domain.Common;
 using WalletLedger.Domain.Ledger;
+using WalletLedger.Domain.Pix;
 using WalletLedger.Domain.Users;
 
 namespace WalletLedger.Application.Abstractions;
@@ -24,6 +25,8 @@ public interface IWalletDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
 
     DbSet<IdempotencyRecord> IdempotencyKeys { get; }
+
+    DbSet<PixKey> PixKeys { get; }
 
     DatabaseFacade Database { get; }
 
