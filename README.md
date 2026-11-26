@@ -11,7 +11,7 @@ O foco não é ter muitas telas nem muitos recursos. É **não errar com dinheir
 
 > Faz parte do **Wallet Ledger**, um sistema com três repositórios:
 > - **wallet-ledger-api**: esta API (.NET)
-> - **wallet-ledger-mobile**: app do correntista em Flutter *(em construção)*
+> - [wallet-ledger-mobile](https://github.com/Mavoxweb/wallet-ledger-mobile): app do correntista em Flutter (Pix, extrato, QR code)
 > - **wallet-ledger-backoffice**: painel da operação em Angular *(em construção)*
 
 ## Sumário
@@ -166,7 +166,7 @@ Escopo atual:
 - **A conta de liquidação é um ponto de disputa.** Todo depósito trava essa mesma linha, então depósitos simultâneos entram em fila. Para o volume deste projeto é correto e simples; em escala real, eu dividiria em várias contas de liquidação.
 
 O que vem a seguir:
-- [ ] App Flutter do correntista (saldo, PIX, extrato, leitura de QR code, biometria)
+- [x] [App Flutter do correntista](https://github.com/Mavoxweb/wallet-ledger-mobile) (saldo, PIX, extrato, leitura de QR code, biometria)
 - [ ] Backoffice Angular (busca de contas, bloqueio, estorno, trilha de auditoria)
 - [ ] Limites de PIX diário e noturno, como a regra do Banco Central
 - [ ] Outbox e notificações em tempo real (SignalR)
