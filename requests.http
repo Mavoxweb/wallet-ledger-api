@@ -1,0 +1,56 @@
+# Roteiro de demonstração da Wallet Ledger API.
+# Suba a API com `docker compose up --build` e execute as requisições em ordem
+# (VS Code com a extensão REST Client, ou Rider).
+
+@baseUrl = http://localhost:8080
+
+### 1. Login da Ana (conta de demonstração)
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{ "email": "ana@walletledger.dev", "password": "Demo@1234" }
+
+###
+@token = {{login.response.body.accessToken}}
+
+### 2. Saldo
+GET {{baseUrl}}/api/v1/account
+Authorization: Bearer {{token}}
+
+### 3. Conferir o destinatário antes do PIX (nome e CPF mascarados)
+GET {{baseUrl}}/api/v1/pix/keys/lookup?type=email&value=bruno@walletledger.dev
+Authorization: Bearer {{token}}
+
+### 4. PIX de R$ 25,90 para o Bruno
+# Rode duas vezes sem mudar a chave: o dinheiro só sai uma vez.
+POST {{baseUrl}}/api/v1/transfers/pix
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Idempotency-Key: demo-pix-0001
+
+{ "keyType": "email", "keyValue": "bruno@walletledger.dev", "amountCents": 2590, "description": "Almoço" }
+
+### 5. Extrato (página de 10)
+GET {{baseUrl}}/api/v1/account/statement?limit=10
+Authorization: Bearer {{token}}
+
+### 6. Minhas chaves PIX
+# @name keys
+GET {{baseUrl}}/api/v1/pix/keys
+Authorization: Bearer {{token}}
+
+### 7. QR code de cobrança de R$ 10,00 (texto do "Pix Copia e Cola")
+POST {{baseUrl}}/api/v1/pix/charges
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "keyId": "{{keys.response.body.$[0].id}}", "amountCents": 1000 }
+
+### 8. Saldo insuficiente → 422 insufficient_funds
+POST {{baseUrl}}/api/v1/transfers/pix
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Idempotency-Key: demo-pix-sem-saldo
+
+{ "keyType": "email", "keyValue": "bruno@walletledger.dev", "amountCents": 999999999 }
