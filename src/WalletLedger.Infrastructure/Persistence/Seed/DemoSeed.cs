@@ -24,6 +24,14 @@ public static class DemoSeed
         ("Admin Demo", "admin@walletledger.dev", "39053344705", Role.Admin),
         ("Ana Beatriz Lima", "ana@walletledger.dev", "52998224725", Role.Customer),
         ("Bruno Carvalho Dias", "bruno@walletledger.dev", "15350946056", Role.Customer),
+
+        // Mais clientes, para a busca e a paginação do backoffice terem o que mostrar.
+        ("Carla Mendes Rocha", "carla@walletledger.dev", "28139475637", Role.Customer),
+        ("Diego Ferreira Alves", "diego@walletledger.dev", "40761829369", Role.Customer),
+        ("Elisa Nogueira Prado", "elisa@walletledger.dev", "57392048104", Role.Customer),
+        ("Felipe Araújo Souza", "felipe@walletledger.dev", "61847235964", Role.Customer),
+        ("Gabriela Torres Lima", "gabriela@walletledger.dev", "73910584675", Role.Customer),
+        ("Henrique Batista Melo", "henrique@walletledger.dev", "84625193737", Role.Customer),
     ];
 
     public static async Task EnsureDemoDataAsync(
