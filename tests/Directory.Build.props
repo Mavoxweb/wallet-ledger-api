@@ -1,0 +1,7 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <!-- Nomes de teste com sublinhado (Metodo_cenario_resultado) e fixtures do xUnit. -->
+    <NoWarn>$(NoWarn);CA1707;CA1711;CA1515;CA2007;CA1063;CA1816</NoWarn>
+  </PropertyGroup>
+</Project>
