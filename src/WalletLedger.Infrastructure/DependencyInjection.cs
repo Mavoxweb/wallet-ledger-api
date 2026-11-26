@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WalletLedger.Application.Abstractions;
+using WalletLedger.Infrastructure.Auth;
 using WalletLedger.Infrastructure.Persistence;
 
 namespace WalletLedger.Infrastructure;
@@ -21,6 +22,14 @@ public static class DependencyInjection
 
         // Relógio injetável: os testes trocam por um FakeTimeProvider.
         services.TryAddSingleton(TimeProvider.System);
+
+        // A API nem sobe se a configuração do JWT estiver faltando ou fraca.
+        services.AddOptions<JwtSettings>()
+            .Bind(configuration.GetSection(JwtSettings.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddSingleton<IPasswordHasher, PasswordHasherAdapter>();
 
         return services;
     }

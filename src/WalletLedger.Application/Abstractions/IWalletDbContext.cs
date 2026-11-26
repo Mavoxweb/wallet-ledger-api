@@ -20,6 +20,8 @@ public interface IWalletDbContext
 
     DbSet<Posting> Postings { get; }
 
+    DbSet<RefreshToken> RefreshTokens { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -60,7 +60,7 @@ public sealed class PersistenceTests(ApiFactory factory)
     [Fact]
     public async Task Database_rejects_negative_balance_on_customer_account()
     {
-        Cpf.TryParse("39053344705", out var cpf).ShouldBeTrue();
+        Cpf.TryParse(TestUsers.NextCpf(), out var cpf).ShouldBeTrue();
         var user = User.Create("Cliente", cpf!, $"{Guid.NewGuid():N}@walletledger.dev", "h", Role.Customer, Now);
         var account = Account.OpenForCustomer(user.Id, Now);
 
@@ -79,14 +79,14 @@ public sealed class PersistenceTests(ApiFactory factory)
     [Fact]
     public async Task Duplicate_email_violates_unique_constraint()
     {
-        Cpf.TryParse("52998224725", out var cpf1).ShouldBeTrue();
-        Cpf.TryParse("11144477735", out var cpf2).ShouldBeTrue();
+        Cpf.TryParse(TestUsers.NextCpf(), out var cpf1).ShouldBeTrue();
+        Cpf.TryParse(TestUsers.NextCpf(), out var cpf2).ShouldBeTrue();
 
         await using var db = NewContext();
-        db.Users.Add(User.Create("Primeira", cpf1!, "dup@walletledger.dev", "h", Role.Customer, Now));
+        db.Users.Add(User.Create("Primeira", cpf1!, "dup@teste.dev", "h", Role.Customer, Now));
         await db.SaveChangesAsync();
 
-        db.Users.Add(User.Create("Segunda", cpf2!, "DUP@walletledger.dev", "h", Role.Customer, Now));
+        db.Users.Add(User.Create("Segunda", cpf2!, "DUP@teste.dev", "h", Role.Customer, Now));
         var ex = await Should.ThrowAsync<DbUpdateException>(() => db.SaveChangesAsync());
 
         ex.InnerException.ShouldBeOfType<PostgresException>().SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
