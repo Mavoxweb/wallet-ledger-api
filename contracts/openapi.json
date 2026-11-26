@@ -36,7 +36,7 @@
         "tags": [
           "Account"
         ],
-        "summary": "Extrato, do mais novo para o mais antigo. Para a próxima página, envie o\r\n`nextCursor` recebido; quando ele vier nulo, acabou.",
+        "summary": "Extrato, do mais novo para o mais antigo. Para a próxima página, envie o\n`nextCursor` recebido; quando ele vier nulo, acabou.",
         "parameters": [
           {
             "name": "limit",
@@ -287,7 +287,7 @@
         "tags": [
           "Charges"
         ],
-        "summary": "Gera o texto de um QR code de cobrança no padrão BR Code (o mesmo dos bancos)\r\npara uma chave da própria conta. O app transforma o texto em imagem.",
+        "summary": "Gera o texto de um QR code de cobrança no padrão BR Code (o mesmo dos bancos)\npara uma chave da própria conta. O app transforma o texto em imagem.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -352,7 +352,7 @@
         "tags": [
           "Deposits"
         ],
-        "summary": "Depósito de demonstração na própria conta (até R$ 1.000,00 por vez e\r\nR$ 5.000,00 por dia). Exige o header Idempotency-Key.",
+        "summary": "Depósito de demonstração na própria conta (até R$ 1.000,00 por vez e\nR$ 5.000,00 por dia). Exige o header Idempotency-Key.",
         "parameters": [
           {
             "name": "Idempotency-Key",

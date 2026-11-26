@@ -38,6 +38,11 @@ internal static class OpenApiSetup
 
         options.AddOperationTransformer((operation, context, _) =>
         {
+            // Comentários /// de várias linhas carregam a quebra de linha do sistema (\r\n no
+            // Windows, \n no Linux). Padronizando, o contrato sai igual em qualquer máquina.
+            operation.Summary = operation.Summary?.ReplaceLineEndings("\n");
+            operation.Description = operation.Description?.ReplaceLineEndings("\n");
+
             var metadata = context.Description.ActionDescriptor.EndpointMetadata;
 
             if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
