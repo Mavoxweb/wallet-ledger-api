@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WalletLedger.Application.Auth;
 using WalletLedger.Application.Deposits;
 using WalletLedger.Application.Pix;
+using WalletLedger.Application.Statements;
 using WalletLedger.Application.Transfers;
 
 namespace WalletLedger.Application;
@@ -24,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<DeletePixKeyHandler>();
         services.AddScoped<LookupPixKeyHandler>();
         services.AddScoped<TransferByPixKeyHandler>();
+        services.AddScoped<GetBalanceHandler>();
+        services.AddScoped<GetStatementHandler>();
 
         return services;
     }
