@@ -31,6 +31,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("ConnectionStrings:Default", ConnectionString);
         builder.UseSetting("Jwt:SigningKey", "chave-de-teste-com-pelo-menos-32-bytes-de-tamanho");
         builder.UseSetting("Seed:Demo", "true");
+        builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:5000");
 
         builder.ConfigureServices(services =>
         {
