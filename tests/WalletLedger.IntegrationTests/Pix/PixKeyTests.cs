@@ -55,6 +55,40 @@ public sealed class PixKeyTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Creating_equivalent_email_key_in_another_format_returns_409()
+    {
+        var ana = await TestUsers.RegisterAndLoginAsync(factory);
+        var bia = await TestUsers.RegisterAndLoginAsync(factory);
+        (await CreateKeyAsync(factory.CreateAuthenticatedClient(ana.Tokens.AccessToken), "email", ana.Email)).EnsureSuccessStatusCode();
+
+        var response = await CreateKeyAsync(factory.CreateAuthenticatedClient(bia.Tokens.AccessToken), "email", $"  {ana.Email.ToUpperInvariant()}  ");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Theory]
+    [InlineData("Fulano <{0}>")]
+    [InlineData("{0} (comentario)")]
+    public async Task Email_key_with_display_name_or_comment_returns_422(string template)
+    {
+        var user = await TestUsers.RegisterAndLoginAsync(factory);
+
+        var response = await CreateKeyAsync(factory.CreateAuthenticatedClient(user.Tokens.AccessToken), "email", string.Format(System.Globalization.CultureInfo.InvariantCulture, template, user.Email));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task Very_long_email_key_returns_422_not_500()
+    {
+        var user = await TestUsers.RegisterAndLoginAsync(factory);
+
+        var response = await CreateKeyAsync(factory.CreateAuthenticatedClient(user.Tokens.AccessToken), "email", new string('a', 300) + "@x.com");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+    }
+
+    [Fact]
     public async Task Sixth_key_returns_422_pix_key_limit()
     {
         var user = await TestUsers.RegisterAndLoginAsync(factory);

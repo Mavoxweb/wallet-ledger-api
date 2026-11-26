@@ -32,9 +32,11 @@ builder.Services.AddAuthorization();
 
 // Enums trafegam como texto em camelCase ("email", "transfer"). A segunda configuração
 // é a que o gerador do contrato OpenAPI lê; as duas precisam concordar.
+// Números só como número: "amountCents": "100" é recusado, e o contrato tipa os
+// campos como inteiro puro (e não "inteiro ou texto"), o que simplifica os clientes gerados.
 builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
+    .AddJsonOptions(o => ConfigureJson(o.JsonSerializerOptions));
+builder.Services.ConfigureHttpJsonOptions(o => ConfigureJson(o.SerializerOptions));
 builder.Services.AddOpenApi(options => OpenApiSetup.Configure(options));
 builder.Services.AddProblemDetails();
 
@@ -69,4 +71,11 @@ app.MapControllers();
 
 await app.RunAsync();
 
-public partial class Program;
+public partial class Program
+{
+    private static void ConfigureJson(JsonSerializerOptions options)
+    {
+        options.NumberHandling = JsonNumberHandling.Strict;
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    }
+}

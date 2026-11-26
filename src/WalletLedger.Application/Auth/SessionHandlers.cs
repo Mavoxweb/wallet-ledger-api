@@ -68,7 +68,7 @@ public sealed class RefreshHandler(
         var stored = await db.RefreshTokens.SingleOrDefaultAsync(t => t.TokenHash == hash, cancellationToken)
             ?? throw InvalidToken();
 
-        if (stored.IsRevoked)
+        if (stored.IsRevoked && stored.ReplacedById is not null)
         {
             // Um token já trocado está sendo usado de novo: pode ter sido roubado.
             // Revoga todos os tokens do usuário para forçar um novo login.

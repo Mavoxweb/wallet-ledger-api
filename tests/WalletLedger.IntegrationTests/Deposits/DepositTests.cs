@@ -63,6 +63,21 @@ public sealed class DepositTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Amount_sent_as_string_returns_400()
+    {
+        var user = await TestUsers.RegisterAndLoginAsync(factory);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/deposits/simulated")
+        {
+            Content = new StringContent("{\"amountCents\":\"100\"}", System.Text.Encoding.UTF8, "application/json"),
+        };
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
+
+        var response = await factory.CreateAuthenticatedClient(user.Tokens.AccessToken).SendAsync(request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Deposit_above_100000_returns_422_deposit_limit()
     {
         var user = await TestUsers.RegisterAndLoginAsync(factory);

@@ -480,11 +480,3 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-
-# Arquivos locais de ferramentas e notas pessoais
-CLAUDE.md
-AGENTS.md
-.cursor/
-.claude/
-.superpowers/
-_interno/
