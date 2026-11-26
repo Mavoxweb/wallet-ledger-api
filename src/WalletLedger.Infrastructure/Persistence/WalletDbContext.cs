@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WalletLedger.Application.Abstractions;
 using WalletLedger.Domain.Accounts;
+using WalletLedger.Domain.Common;
 using WalletLedger.Domain.Ledger;
 using WalletLedger.Domain.Users;
 
@@ -17,6 +18,8 @@ public sealed class WalletDbContext(DbContextOptions<WalletDbContext> options) :
     public DbSet<Posting> Postings => Set<Posting>();
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<IdempotencyRecord> IdempotencyKeys => Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(WalletDbContext).Assembly);

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using WalletLedger.Domain.Accounts;
+using WalletLedger.Domain.Common;
 using WalletLedger.Domain.Ledger;
 using WalletLedger.Domain.Users;
 
@@ -21,6 +22,8 @@ public interface IWalletDbContext
     DbSet<Posting> Postings { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }
+
+    DbSet<IdempotencyRecord> IdempotencyKeys { get; }
 
     DatabaseFacade Database { get; }
 

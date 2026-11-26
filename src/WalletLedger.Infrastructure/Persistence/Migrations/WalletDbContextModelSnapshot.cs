@@ -75,6 +75,45 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WalletLedger.Domain.Common.IdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .HasColumnName("request_hash")
+                        .IsFixedLength();
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("text")
+                        .HasColumnName("response_body");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_code");
+
+                    b.HasKey("UserId", "Key")
+                        .HasName("pk_idempotency_keys");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_idempotency_keys_created_at");
+
+                    b.ToTable("idempotency_keys", (string)null);
+                });
+
             modelBuilder.Entity("WalletLedger.Domain.Ledger.LedgerTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -257,6 +296,16 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_accounts_users_owner_user_id");
+                });
+
+            modelBuilder.Entity("WalletLedger.Domain.Common.IdempotencyRecord", b =>
+                {
+                    b.HasOne("WalletLedger.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_idempotency_keys_users_user_id");
                 });
 
             modelBuilder.Entity("WalletLedger.Domain.Ledger.Posting", b =>
