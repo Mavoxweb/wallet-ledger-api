@@ -152,6 +152,21 @@ public sealed class AuthTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Reusing_logged_out_token_does_not_revoke_other_sessions()
+    {
+        var user = await TestUsers.RegisterAndLoginAsync(factory);
+        var client = factory.CreateClient();
+        var otherDevice = await TestUsers.LoginAsync(client, user.Email, user.Password);
+
+        (await client.PostAsJsonAsync("/api/v1/auth/logout", new { refreshToken = user.Tokens.RefreshToken })).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken = user.Tokens.RefreshToken }))
+            .StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+
+        (await client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken = otherDevice.RefreshToken }))
+            .StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Protected_endpoint_without_token_returns_401()
     {
         var response = await factory.CreateClient().GetAsync("/api/v1/me");

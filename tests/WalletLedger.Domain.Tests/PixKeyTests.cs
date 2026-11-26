@@ -32,12 +32,24 @@ public sealed class PixKeyTests
     [InlineData(PixKeyType.Email, "sem-arroba")]
     [InlineData(PixKeyType.Email, "a@b")]
     [InlineData(PixKeyType.Email, "")]
+    [InlineData(PixKeyType.Email, "Ana <ana@x.com>")]
+    [InlineData(PixKeyType.Email, "ana(comentario)@x.com")]
     [InlineData(PixKeyType.Phone, "9999-0000")]
     [InlineData(PixKeyType.Phone, "+1 415 555 0100")]
     [InlineData(PixKeyType.Phone, "")]
     public void Invalid_values_throw_invalid_pix_key(PixKeyType type, string raw)
     {
         Should.Throw<DomainException>(() => PixKey.Normalize(type, raw)).Code.ShouldBe("invalid_pix_key");
+    }
+
+    [Fact]
+    public void Email_key_longer_than_77_chars_is_rejected()
+    {
+        var at77 = new string('a', 77 - "@x.com".Length) + "@x.com";
+        var at78 = new string('a', 78 - "@x.com".Length) + "@x.com";
+
+        PixKey.Normalize(PixKeyType.Email, at77).ShouldBe(at77);
+        Should.Throw<DomainException>(() => PixKey.Normalize(PixKeyType.Email, at78)).Code.ShouldBe("invalid_pix_key");
     }
 
     [Fact]

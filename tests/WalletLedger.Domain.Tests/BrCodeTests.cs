@@ -54,6 +54,14 @@ public sealed class BrCodeTests
     }
 
     [Fact]
+    public void BuildStatic_rejects_field_longer_than_99_chars()
+    {
+        var hugeKey = new string('k', 90);
+
+        Should.Throw<ArgumentException>(() => BrCode.BuildStatic(hugeKey, "Ana", "RIO", null, null));
+    }
+
+    [Fact]
     public void Parse_reads_reference_payload()
     {
         var parsed = BrCode.Parse(ReferencePayload);

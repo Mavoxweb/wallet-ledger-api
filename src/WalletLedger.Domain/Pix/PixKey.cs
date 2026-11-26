@@ -19,6 +19,9 @@ public sealed class PixKey
 {
     public const int MaxKeysPerAccount = 5;
 
+    /// <summary>Limite do Banco Central para chave de e-mail.</summary>
+    public const int MaxEmailLength = 77;
+
     private PixKey()
     {
     }
@@ -61,8 +64,10 @@ public sealed class PixKey
         var email = value.ToLowerInvariant();
         var at = email.IndexOf('@', StringComparison.Ordinal);
 
-        // Exige domínio com ponto: "a@b" não serve como chave PIX.
-        if (at <= 0 || !email[(at + 1)..].Contains('.', StringComparison.Ordinal) || !MailAddress.TryCreate(email, out _))
+        // Exige domínio com ponto ("a@b" não serve) e o endereço puro: o MailAddress aceita
+        // formas como "Ana <ana@x.com>" e "ana(comentário)@x.com", que burlariam a unicidade.
+        if (email.Length > MaxEmailLength || at <= 0 || !email[(at + 1)..].Contains('.', StringComparison.Ordinal)
+            || !MailAddress.TryCreate(email, out var parsed) || parsed.Address != email || parsed.DisplayName.Length > 0)
         {
             throw Invalid();
         }

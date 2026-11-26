@@ -9,6 +9,7 @@ public static class ApiJson
 {
     public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
+        NumberHandling = JsonNumberHandling.Strict,
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 

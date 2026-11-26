@@ -3,7 +3,7 @@
 [![CI](https://github.com/Mavoxweb/wallet-ledger-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Mavoxweb/wallet-ledger-api/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
-![Testes](https://img.shields.io/badge/testes-133-2ea44f)
+![Testes](https://img.shields.io/badge/testes-144-2ea44f)
 
 API de uma **carteira digital** com **livro-razão de partidas dobradas**: contas, depósitos, transferências PIX por chave, extrato e QR code de cobrança no padrão BR Code.
 
@@ -149,7 +149,7 @@ Pré-requisitos: **.NET 10 SDK** e **Docker em execução** (os testes de integr
 dotnet test
 ```
 
-São **133 testes** (54 de domínio e 79 de integração). Os principais:
+São **144 testes** (58 de domínio e 86 de integração). Os principais:
 
 - **100 transferências cruzadas simultâneas**: nenhum saldo negativo, nenhum deadlock, total das contas inalterado e o razão somando zero. Para ter certeza de que o teste não passa "por sorte", quebrei a ordem do travamento de propósito: ele falhou com deadlocks, como deveria.
 - **Duas requisições paralelas com a mesma chave de idempotência** → exatamente uma transação.

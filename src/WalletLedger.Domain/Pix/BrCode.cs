@@ -67,8 +67,11 @@ public static class BrCode
         return (key, amount);
     }
 
+    // O tamanho tem 2 dígitos: um campo com mais de 99 caracteres geraria um payload inválido.
     private static string Field(string id, string value) =>
-        string.Create(CultureInfo.InvariantCulture, $"{id}{value.Length:D2}{value}");
+        value.Length > 99
+            ? throw new ArgumentException($"Campo {id} do BR Code excede 99 caracteres.", nameof(value))
+            : string.Create(CultureInfo.InvariantCulture, $"{id}{value.Length:D2}{value}");
 
     // Centavos → "10.50", sem passar por ponto flutuante.
     private static string FormatAmount(long cents) =>
