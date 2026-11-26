@@ -4,6 +4,10 @@
     <ProjectReference Include="..\WalletLedger.Domain\WalletLedger.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
   <PropertyGroup>
   </PropertyGroup>
 
