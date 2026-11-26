@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WalletLedger.Application.Abstractions;
 using WalletLedger.Infrastructure.Auth;
+using WalletLedger.Infrastructure.Idempotency;
 using WalletLedger.Infrastructure.Persistence;
 
 namespace WalletLedger.Infrastructure;
@@ -30,6 +31,11 @@ public static class DependencyInjection
             .ValidateOnStart();
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasherAdapter>();
+
+        services.AddScoped<IIdempotentOperationRunner, IdempotentOperationRunner>();
+        services.AddScoped<IAccountLocker, AccountLocker>();
+        services.AddSingleton<IdempotencyCleanupService>();
+        services.AddHostedService(sp => sp.GetRequiredService<IdempotencyCleanupService>());
 
         return services;
     }
