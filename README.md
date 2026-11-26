@@ -29,16 +29,16 @@ O foco não é ter muitas telas nem muitos recursos. É **não errar com dinheir
 
 ## Destaques técnicos
 
-| Pergunta | Resposta curta | Detalhes |
+| | Como foi resolvido | Decisão |
 |---|---|---|
-| Como evita saldo negativo com transferências simultâneas? | Transação + `SELECT … FOR UPDATE`, sempre em ordem crescente de id decidida pelo PostgreSQL, o que também evita deadlock. Há um teste com **100 PIX cruzados ao mesmo tempo** | [ADR 0004](docs/adr/0004-ordem-de-travamento.md) |
-| E se o cliente repetir a requisição? | `Idempotency-Key` obrigatório, gravado **na mesma transação** dos lançamentos. A repetição recebe a mesma resposta, byte a byte, e o dinheiro sai uma vez só | [ADR 0005](docs/adr/0005-idempotencia-no-postgres.md) |
-| Como garante que nenhum dinheiro some ou aparece? | Partidas dobradas: todo lançamento tem contrapartida, a soma global é sempre zero, e nada é editado, só estornado | [ADR 0003](docs/adr/0003-partidas-dobradas.md) |
-| Como representa dinheiro? | Inteiro em centavos. Nenhum `double` em lugar nenhum | [ADR 0002](docs/adr/0002-dinheiro-em-centavos.md) |
-| Como o código está organizado? | Clean Architecture em 4 projetos, com as regras no domínio e sem camadas desnecessárias | [ADR 0001](docs/adr/0001-clean-architecture.md) |
-| Como os clientes consomem a API sem quebrar? | Contrato OpenAPI gerado do código, verificado no CI e publicado por versão | [ADR 0006](docs/adr/0006-contrato-gerado-do-codigo.md) |
+| **Concorrência sem saldo negativo** | Transação + `SELECT … FOR UPDATE`, sempre em ordem crescente de id definida pelo PostgreSQL, o que também elimina deadlocks. Validado com **100 transferências cruzadas simultâneas** | [ADR 0004](docs/adr/0004-ordem-de-travamento.md) |
+| **Idempotência** | `Idempotency-Key` obrigatório, gravado **na mesma transação** dos lançamentos. Uma repetição recebe a mesma resposta, byte a byte, e o dinheiro sai uma única vez | [ADR 0005](docs/adr/0005-idempotencia-no-postgres.md) |
+| **Rastreabilidade total** | Razão de partidas dobradas: todo lançamento tem contrapartida, a soma global é sempre zero, e nada é editado, apenas estornado | [ADR 0003](docs/adr/0003-partidas-dobradas.md) |
+| **Precisão monetária** | Valores como inteiros em centavos, sem ponto flutuante em nenhuma camada | [ADR 0002](docs/adr/0002-dinheiro-em-centavos.md) |
+| **Arquitetura** | Clean Architecture em 4 projetos, com as regras no domínio e sem camadas desnecessárias | [ADR 0001](docs/adr/0001-clean-architecture.md) |
+| **Contrato versionado** | OpenAPI gerado do código, verificado no CI e publicado a cada versão para os clientes | [ADR 0006](docs/adr/0006-contrato-gerado-do-codigo.md) |
 
-Também vale olhar:
+Além disso:
 - **Refresh token com rotação e detecção de reuso**: se um token roubado for reaproveitado, todas as sessões daquele usuário caem.
 - **Defesa em profundidade**: além das regras no domínio, o banco tem `CHECK` de saldo não negativo, índices únicos e chaves estrangeiras.
 - **BR Code feito do zero** e validado contra o exemplo oficial do Banco Central, CRC16 incluso.
@@ -149,7 +149,7 @@ Pré-requisitos: **.NET 10 SDK** e **Docker em execução** (os testes de integr
 dotnet test
 ```
 
-São **133 testes** (54 de domínio e 79 de integração). Os que eu mais gosto de mostrar:
+São **133 testes** (54 de domínio e 79 de integração). Os principais:
 
 - **100 transferências cruzadas simultâneas**: nenhum saldo negativo, nenhum deadlock, total das contas inalterado e o razão somando zero. Para ter certeza de que o teste não passa "por sorte", quebrei a ordem do travamento de propósito: ele falhou com deadlocks, como deveria.
 - **Duas requisições paralelas com a mesma chave de idempotência** → exatamente uma transação.
@@ -159,7 +159,7 @@ São **133 testes** (54 de domínio e 79 de integração). Os que eu mais gosto 
 
 ## Limitações e próximos passos
 
-Para ser claro sobre o que este projeto **não** é:
+Escopo atual:
 
 - **O PIX é simulado.** Não há integração com o sistema do Banco Central (SPI/DICT). Um app de banco reconhece o QR code gerado, mas não consegue pagar, porque as chaves só existem aqui.
 - **O depósito é de demonstração.** A ideia é que ele seja substituído por um hub de pagamentos que receba confirmações por webhook.
