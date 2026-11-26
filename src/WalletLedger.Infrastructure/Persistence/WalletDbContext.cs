@@ -16,6 +16,8 @@ public sealed class WalletDbContext(DbContextOptions<WalletDbContext> options) :
 
     public DbSet<Posting> Postings => Set<Posting>();
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(WalletDbContext).Assembly);
 }
