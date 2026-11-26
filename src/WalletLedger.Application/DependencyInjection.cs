@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<ListPixKeysHandler>();
         services.AddScoped<DeletePixKeyHandler>();
         services.AddScoped<LookupPixKeyHandler>();
+        services.AddScoped<CreateChargeHandler>();
         services.AddScoped<TransferByPixKeyHandler>();
         services.AddScoped<GetBalanceHandler>();
         services.AddScoped<GetStatementHandler>();
