@@ -6,6 +6,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using WalletLedger.Api.Auth;
 using WalletLedger.Api.ErrorHandling;
+using WalletLedger.Api.Filters;
 using WalletLedger.Api.OpenApi;
 using WalletLedger.Application;
 using WalletLedger.Infrastructure;
@@ -48,6 +49,14 @@ builder.Services.AddExceptionHandler<UnhandledExceptionHandler>();
 
 builder.Services.AddHealthChecks().AddNpgSql(connectionString, name: "database");
 
+// CORS: o app Flutter na web roda em outra origem. Só as origens da configuração
+// (Cors:AllowedOrigins) podem chamar, e só com os cabeçalhos que a API usa.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .WithOrigins(allowedOrigins)
+    .WithMethods("GET", "POST", "DELETE")
+    .WithHeaders("Authorization", "Content-Type", RequiresIdempotencyKeyAttribute.HeaderName)));
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -63,6 +72,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo"))
         .AddPreferredSecuritySchemes("Bearer"));
 }
 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
