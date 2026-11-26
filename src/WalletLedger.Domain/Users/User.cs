@@ -28,13 +28,12 @@ public sealed class User
     public DateTimeOffset CreatedAt { get; private set; }
 
     /// <summary>Primeiro nome completo e iniciais dos demais: "Alex K. M.".</summary>
-    public string MaskedName
+    public string MaskedName => MaskName(Name);
+
+    public static string MaskName(string name)
     {
-        get
-        {
-            var parts = Name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            return string.Join(' ', parts.Take(1).Concat(parts.Skip(1).Select(p => $"{p[0]}.")));
-        }
+        var parts = (name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return string.Join(' ', parts.Take(1).Concat(parts.Skip(1).Select(p => $"{p[0]}.")));
     }
 
     public static User Create(string name, Cpf cpf, string email, string passwordHash, Role role, DateTimeOffset now) =>
