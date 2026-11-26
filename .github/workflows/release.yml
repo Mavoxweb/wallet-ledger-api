@@ -1,0 +1,24 @@
+name: Release
+
+# Uma tag de versão (ex.: v0.1.0) publica um GitHub Release com o contrato anexado.
+# O app e o backoffice baixam o openapi.json da versão que escolherem.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publicar release com o contrato
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" contracts/openapi.json \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes

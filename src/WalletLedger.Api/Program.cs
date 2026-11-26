@@ -1,17 +1,20 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 using WalletLedger.Api.Auth;
 using WalletLedger.Api.ErrorHandling;
+using WalletLedger.Api.OpenApi;
 using WalletLedger.Application;
-using WalletLedger.Application.Abstractions;
 using WalletLedger.Infrastructure;
-using WalletLedger.Infrastructure.Persistence;
-using WalletLedger.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// No build, a ferramenta "GetDocument.Insider" carrega a aplicação só para extrair o
+// contrato OpenAPI. Nesse caso não há banco nem segredos configurados.
+var isGeneratingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 
 builder.Host.UseSerilog((context, logger) => logger
     .ReadFrom.Configuration(context.Configuration)
@@ -21,15 +24,18 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("ConnectionStrings:Default não configurada.");
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, runStartupTasks: !isGeneratingOpenApi);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.ConfigureOptions<JwtBearerSetup>();
 builder.Services.AddAuthorization();
 
+// Enums trafegam como texto em camelCase ("email", "transfer"). A segunda configuração
+// é a que o gerador do contrato OpenAPI lê; as duas precisam concordar.
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
-builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
+builder.Services.AddOpenApi(options => OpenApiSetup.Configure(options));
 builder.Services.AddProblemDetails();
 
 // A ordem importa: os tratadores específicos vêm antes do genérico (500).
@@ -42,29 +48,17 @@ builder.Services.AddHealthChecks().AddNpgSql(connectionString, name: "database")
 
 var app = builder.Build();
 
-// Aplica as migrations pendentes e garante os dados iniciais antes de aceitar requisições.
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var services = scope.ServiceProvider;
-    var db = services.GetRequiredService<WalletDbContext>();
-    var clock = services.GetRequiredService<TimeProvider>();
-
-    await db.Database.MigrateAsync();
-    await SeedData.EnsureSystemAccountsAsync(db, clock);
-
-    if (app.Configuration.GetValue<bool>("Seed:Demo"))
-    {
-        await DemoSeed.EnsureDemoDataAsync(db, services.GetRequiredService<IPasswordHasher>(), clock);
-    }
-}
-
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment())
+// Contrato em /openapi/v1.json e documentação interativa em /docs (desenvolvimento e demo).
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo"))
 {
     app.MapOpenApi();
+    app.MapScalarApiReference("/docs", options => options
+        .WithTitle("Wallet Ledger API")
+        .AddPreferredSecuritySchemes("Bearer"));
 }
 
 app.UseAuthentication();

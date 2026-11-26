@@ -21,5 +21,14 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # O build regenera contracts/openapi.json a partir dos controllers.
+      # Se o arquivo commitado for diferente, alguém mudou a API sem atualizar o contrato.
+      - name: Contrato OpenAPI atualizado
+        run: |
+          if ! git diff --exit-code -- contracts/openapi.json; then
+            echo "::error::Contrato desatualizado: rode 'dotnet build' e commite contracts/openapi.json"
+            exit 1
+          fi
+
       - name: Test
         run: dotnet test --no-build --configuration Release --logger "console;verbosity=normal"
