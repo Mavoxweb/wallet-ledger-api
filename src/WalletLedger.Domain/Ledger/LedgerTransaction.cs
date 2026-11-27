@@ -38,7 +38,13 @@ public sealed class LedgerTransaction
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>Transação de estorno que desfez esta, quando houver.</summary>
+    public Guid? ReversedById { get; private set; }
+
     public IReadOnlyList<Posting> Postings => _postings;
+
+    /// <summary>Valor movimentado: a soma dos lançamentos positivos.</summary>
+    public long AmountCents => _postings.Where(p => p.AmountCents > 0).Sum(p => p.AmountCents);
 
     public static LedgerTransaction Create(
         TransactionType type,
@@ -78,5 +84,41 @@ public sealed class LedgerTransaction
         }
 
         return transaction;
+    }
+
+    /// <summary>
+    /// Estorno: uma transação nova com os lançamentos opostos aos da original. Nada
+    /// do razão é apagado ou alterado; o histórico mostra o Pix e o estorno dele.
+    /// </summary>
+    public static LedgerTransaction CreateReversalOf(LedgerTransaction original, string description, DateTimeOffset at)
+    {
+        ArgumentNullException.ThrowIfNull(original);
+
+        if (original.Type == TransactionType.Reversal)
+        {
+            throw new DomainException("reversal_not_allowed", "Um estorno não pode ser estornado.");
+        }
+
+        if (original.Status == TransactionStatus.Reversed)
+        {
+            throw new DomainException("transaction_already_reversed", "Esta transação já foi estornada.");
+        }
+
+        return Create(
+            TransactionType.Reversal,
+            description,
+            original._postings.Select(p => (p.AccountId, -p.AmountCents)).ToList(),
+            at);
+    }
+
+    public void MarkReversed(Guid reversalId)
+    {
+        if (Status == TransactionStatus.Reversed)
+        {
+            throw new DomainException("transaction_already_reversed", "Esta transação já foi estornada.");
+        }
+
+        Status = TransactionStatus.Reversed;
+        ReversedById = reversalId;
     }
 }

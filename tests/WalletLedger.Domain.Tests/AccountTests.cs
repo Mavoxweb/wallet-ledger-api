@@ -96,4 +96,26 @@ public sealed class AccountTests
         Should.Throw<DomainException>(() => account.Credit(Money.FromCents(cents))).Code.ShouldBe("invalid_amount");
         Should.Throw<DomainException>(() => account.Debit(Money.FromCents(cents))).Code.ShouldBe("invalid_amount");
     }
+
+    [Fact]
+    public void ApplyReversal_vale_para_conta_bloqueada()
+    {
+        var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
+        account.Credit(Money.FromCents(500));
+        account.Block();
+
+        account.ApplyReversal(-500);
+
+        account.BalanceCents.ShouldBe(0);
+    }
+
+    [Fact]
+    public void ApplyReversal_nao_deixa_conta_de_cliente_negativa()
+    {
+        var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
+        account.Credit(Money.FromCents(100));
+
+        Should.Throw<DomainException>(() => account.ApplyReversal(-101)).Code.ShouldBe("insufficient_funds");
+        account.BalanceCents.ShouldBe(100);
+    }
 }

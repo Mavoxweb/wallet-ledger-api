@@ -47,6 +47,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIdempotentOperationRunner, IdempotentOperationRunner>();
         services.AddScoped<IAccountLocker, AccountLocker>();
+        services.AddScoped<ITransactionLocker, TransactionLocker>();
         services.AddSingleton<IdempotencyCleanupService>();
         if (runStartupTasks)
         {

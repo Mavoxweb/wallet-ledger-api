@@ -22,6 +22,7 @@ internal sealed class DomainExceptionHandler(IProblemDetailsService problemDetai
         ["pix_key_taken"] = StatusCodes.Status409Conflict,
         ["account_already_blocked"] = StatusCodes.Status409Conflict,
         ["account_not_blocked"] = StatusCodes.Status409Conflict,
+        ["transaction_already_reversed"] = StatusCodes.Status409Conflict,
         ["not_found"] = StatusCodes.Status404NotFound,
     };
 

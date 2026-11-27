@@ -635,6 +635,209 @@
         ]
       }
     },
+    "/api/v1/backoffice/audit": {
+      "get": {
+        "tags": [
+          "BackofficeAudit"
+        ],
+        "summary": "Trilha de auditoria, da ação mais recente para a mais antiga. Filtros\nopcionais por conta, por quem fez e por tipo de ação.",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AuditAction"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/backoffice/transactions/{id}/reversal": {
+      "post": {
+        "tags": [
+          "BackofficeTransactions"
+        ],
+        "summary": "Estorna a transação: cria uma transação nova com os lançamentos opostos e marca\na original como estornada. Quem devolve o dinheiro precisa ter saldo; vale\nmesmo com a conta bloqueada. Exige o header Idempotency-Key e um motivo.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Identificador único da operação (ex.: um UUID). Repetir a mesma chave devolve a mesma resposta sem executar de novo.",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReversalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/pix/charges": {
       "post": {
         "tags": [
@@ -1145,6 +1348,93 @@
           "closed"
         ]
       },
+      "AuditAction": {
+        "enum": [
+          "accountBlocked",
+          "accountUnblocked",
+          "transactionReversed"
+        ]
+      },
+      "AuditItem": {
+        "required": [
+          "id",
+          "at",
+          "actorId",
+          "actorName",
+          "actorRole",
+          "action",
+          "accountId",
+          "accountNumber",
+          "transactionId",
+          "reason",
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorName": {
+            "type": "string"
+          },
+          "actorRole": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "action": {
+            "$ref": "#/components/schemas/AuditAction"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountNumber": {
+            "type": "string"
+          },
+          "transactionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "details": {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        }
+      },
+      "AuditPage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditItem"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "BackofficeAccountDetail": {
         "required": [
           "accountId",
@@ -1386,6 +1676,7 @@
           "out"
         ]
       },
+      "JsonElement": { },
       "LoginRequest": {
         "required": [
           "email",
@@ -1636,6 +1927,40 @@
           }
         }
       },
+      "ReversalResponse": {
+        "required": [
+          "reversalTransactionId",
+          "originalTransactionId",
+          "amountCents",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "reversalTransactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalTransactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amountCents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Role": {
+        "enum": [
+          "customer",
+          "operator",
+          "admin"
+        ]
+      },
       "SimulatedDepositRequest": {
         "required": [
           "amountCents"
@@ -1832,6 +2157,12 @@
     },
     {
       "name": "BackofficeAccounts"
+    },
+    {
+      "name": "BackofficeAudit"
+    },
+    {
+      "name": "BackofficeTransactions"
     },
     {
       "name": "Charges"
