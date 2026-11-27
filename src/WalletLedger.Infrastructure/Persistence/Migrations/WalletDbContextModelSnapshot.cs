@@ -75,6 +75,70 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WalletLedger.Domain.Audit.AuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("action");
+
+                    b.Property<string>("ActorRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("actor_role");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_audit_entries");
+
+                    b.HasIndex("ActorUserId")
+                        .HasDatabaseName("ix_audit_entries_actor_user_id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_audit_entries_created_at");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("ix_audit_entries_transaction_id");
+
+                    b.HasIndex("AccountId", "CreatedAt")
+                        .HasDatabaseName("ix_audit_entries_account_id_created_at");
+
+                    b.ToTable("audit_entries", (string)null);
+                });
+
             modelBuilder.Entity("WalletLedger.Domain.Common.IdempotencyRecord", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -336,6 +400,29 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_accounts_users_owner_user_id");
+                });
+
+            modelBuilder.Entity("WalletLedger.Domain.Audit.AuditEntry", b =>
+                {
+                    b.HasOne("WalletLedger.Domain.Accounts.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_audit_entries_accounts_account_id");
+
+                    b.HasOne("WalletLedger.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_audit_entries_users_actor_user_id");
+
+                    b.HasOne("WalletLedger.Domain.Ledger.LedgerTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_audit_entries_transactions_transaction_id");
                 });
 
             modelBuilder.Entity("WalletLedger.Domain.Common.IdempotencyRecord", b =>

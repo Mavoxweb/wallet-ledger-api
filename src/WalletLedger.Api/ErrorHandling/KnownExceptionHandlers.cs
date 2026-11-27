@@ -20,6 +20,8 @@ internal sealed class DomainExceptionHandler(IProblemDetailsService problemDetai
         ["email_taken"] = StatusCodes.Status409Conflict,
         ["cpf_taken"] = StatusCodes.Status409Conflict,
         ["pix_key_taken"] = StatusCodes.Status409Conflict,
+        ["account_already_blocked"] = StatusCodes.Status409Conflict,
+        ["account_not_blocked"] = StatusCodes.Status409Conflict,
         ["not_found"] = StatusCodes.Status404NotFound,
     };
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WalletLedger.Application.Abstractions;
 using WalletLedger.Domain.Accounts;
+using WalletLedger.Domain.Audit;
 using WalletLedger.Domain.Common;
 using WalletLedger.Domain.Ledger;
 using WalletLedger.Domain.Pix;
@@ -23,6 +24,8 @@ public sealed class WalletDbContext(DbContextOptions<WalletDbContext> options) :
     public DbSet<IdempotencyRecord> IdempotencyKeys => Set<IdempotencyRecord>();
 
     public DbSet<PixKey> PixKeys => Set<PixKey>();
+
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(WalletDbContext).Assembly);
