@@ -12,7 +12,7 @@ O foco não é ter muitas telas nem muitos recursos. É **não errar com dinheir
 > Faz parte do **Wallet Ledger**, um sistema com três repositórios:
 > - **wallet-ledger-api**: esta API (.NET)
 > - [wallet-ledger-mobile](https://github.com/Mavoxweb/wallet-ledger-mobile): app do correntista em Flutter (Pix, extrato, QR code)
-> - **wallet-ledger-backoffice**: painel da operação em Angular *(em construção)*
+> - [wallet-ledger-backoffice](https://github.com/Mavoxweb/wallet-ledger-backoffice): painel da operação em Angular (busca de contas, bloqueio, estorno, auditoria)
 
 ## Sumário
 
@@ -183,7 +183,7 @@ Escopo atual:
 O que vem a seguir:
 - [x] [App Flutter do correntista](https://github.com/Mavoxweb/wallet-ledger-mobile) (saldo, PIX, extrato, leitura de QR code, biometria)
 - [x] Endpoints de backoffice (busca de contas, bloqueio, estorno, trilha de auditoria)
-- [ ] Backoffice Angular consumindo esses endpoints
+- [x] [Backoffice Angular](https://github.com/Mavoxweb/wallet-ledger-backoffice) consumindo esses endpoints
 - [ ] Limites de PIX diário e noturno, como a regra do Banco Central
 - [ ] Outbox e notificações em tempo real (SignalR)
 - [ ] Demo online com PostgreSQL serverless (Neon)
