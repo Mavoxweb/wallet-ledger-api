@@ -3,10 +3,8 @@ using System.Globalization;
 namespace WalletLedger.Domain.Common;
 
 /// <summary>
-/// Valor monetário em centavos de real. Dinheiro nunca é representado em ponto
-/// flutuante: <c>0.1 + 0.2</c> não dá <c>0.3</c> em <c>double</c>, e um centavo
-/// perdido num razão contábil é um bug. Por isso não existe construtor a partir de
-/// <c>double</c> ou <c>decimal</c>.
+/// Valor monetário em centavos de real. Não existe construtor a partir de
+/// <c>double</c> ou <c>decimal</c>: um centavo perdido num razão é um bug.
 /// </summary>
 public readonly record struct Money(long Cents)
 {
