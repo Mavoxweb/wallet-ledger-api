@@ -31,6 +31,9 @@ public static class DependencyInjection
         services.AddScoped<GetStatementHandler>();
         services.AddScoped<SearchAccountsHandler>();
         services.AddScoped<GetAccountDetailHandler>();
+        services.AddScoped<BackofficeStatementHandler>();
+        services.AddScoped<BlockAccountHandler>();
+        services.AddScoped<UnblockAccountHandler>();
 
         return services;
     }

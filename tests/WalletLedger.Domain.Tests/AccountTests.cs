@@ -42,17 +42,48 @@ public sealed class AccountTests
         settlement.AllowsNegative.ShouldBeTrue();
     }
 
-    [Theory]
-    [InlineData(AccountStatus.Blocked)]
-    [InlineData(AccountStatus.Closed)]
-    public void Inactive_account_Credit_and_Debit_throw_account_not_active(AccountStatus status)
+    [Fact]
+    public void Blocked_account_Credit_and_Debit_throw_account_not_active()
     {
         var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
         account.Credit(Money.FromCents(100));
-        account.ChangeStatus(status);
+        account.Block();
 
+        account.Status.ShouldBe(AccountStatus.Blocked);
         Should.Throw<DomainException>(() => account.Credit(Money.FromCents(1))).Code.ShouldBe("account_not_active");
         Should.Throw<DomainException>(() => account.Debit(Money.FromCents(1))).Code.ShouldBe("account_not_active");
+    }
+
+    [Fact]
+    public void Block_de_conta_bloqueada_lanca_account_already_blocked()
+    {
+        var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
+        account.Block();
+
+        Should.Throw<DomainException>(account.Block).Code.ShouldBe("account_already_blocked");
+        account.Status.ShouldBe(AccountStatus.Blocked);
+    }
+
+    [Fact]
+    public void Unblock_de_conta_ativa_lanca_account_not_blocked()
+    {
+        var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
+
+        Should.Throw<DomainException>(account.Unblock).Code.ShouldBe("account_not_blocked");
+        account.Status.ShouldBe(AccountStatus.Active);
+    }
+
+    [Fact]
+    public void Unblock_devolve_a_conta_ao_uso()
+    {
+        var account = Account.OpenForCustomer(Guid.NewGuid(), Now);
+        account.Block();
+
+        account.Unblock();
+
+        account.Status.ShouldBe(AccountStatus.Active);
+        account.Credit(Money.FromCents(1));
+        account.BalanceCents.ShouldBe(1);
     }
 
     [Theory]

@@ -86,7 +86,30 @@ public sealed class Account
         }
     }
 
-    public void ChangeStatus(AccountStatus status) => Status = status;
+    /// <summary>
+    /// Bloqueio pela operação. Não mexe no saldo: a conta só para de movimentar,
+    /// porque <see cref="Debit"/> e <see cref="Credit"/> exigem conta ativa.
+    /// </summary>
+    public void Block()
+    {
+        if (Status == AccountStatus.Blocked)
+        {
+            throw new DomainException("account_already_blocked", "A conta já está bloqueada.");
+        }
+
+        EnsureActive();
+        Status = AccountStatus.Blocked;
+    }
+
+    public void Unblock()
+    {
+        if (Status != AccountStatus.Blocked)
+        {
+            throw new DomainException("account_not_blocked", "A conta não está bloqueada.");
+        }
+
+        Status = AccountStatus.Active;
+    }
 
     private static void EnsurePositive(Money amount)
     {
