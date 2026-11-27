@@ -44,7 +44,15 @@ public static class DemoSeed
         ArgumentNullException.ThrowIfNull(passwordHasher);
         ArgumentNullException.ThrowIfNull(clock);
 
-        if (await db.Users.AnyAsync(u => u.Email == "ana@walletledger.dev", cancellationToken))
+        // Confere pessoa por pessoa: um banco criado com uma versão antiga do seed
+        // recebe só quem falta, sem duplicar ninguém.
+        var emails = People.Select(p => p.Email).ToList();
+        var existing = await db.Users
+            .Where(u => emails.Contains(u.Email))
+            .Select(u => u.Email)
+            .ToListAsync(cancellationToken);
+        var missing = People.Where(p => !existing.Contains(p.Email)).ToList();
+        if (missing.Count == 0)
         {
             return;
         }
@@ -53,7 +61,7 @@ public static class DemoSeed
         var settlement = await db.Accounts.SingleAsync(a => a.SystemCode == Account.SettlementAccountCode, cancellationToken);
         var passwordHash = passwordHasher.Hash(Password);
 
-        foreach (var (name, email, cpfDigits, role) in People)
+        foreach (var (name, email, cpfDigits, role) in missing)
         {
             var user = User.Create(name, Cpf.FromTrustedDigits(cpfDigits), email, passwordHash, role, now);
             db.Users.Add(user);

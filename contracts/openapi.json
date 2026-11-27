@@ -1365,6 +1365,7 @@
           "action",
           "accountId",
           "accountNumber",
+          "accountHolderName",
           "transactionId",
           "reason",
           "details"
@@ -1398,6 +1399,12 @@
           },
           "accountNumber": {
             "type": "string"
+          },
+          "accountHolderName": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "transactionId": {
             "type": [
