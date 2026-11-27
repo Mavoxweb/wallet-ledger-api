@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using WalletLedger.Application.Auth;
+using WalletLedger.Application.Backoffice;
 using WalletLedger.Application.Deposits;
 using WalletLedger.Application.Pix;
 using WalletLedger.Application.Statements;
@@ -28,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<TransferByPixKeyHandler>();
         services.AddScoped<GetBalanceHandler>();
         services.AddScoped<GetStatementHandler>();
+        services.AddScoped<SearchAccountsHandler>();
+        services.AddScoped<GetAccountDetailHandler>();
 
         return services;
     }
