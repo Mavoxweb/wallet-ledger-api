@@ -41,10 +41,8 @@ public sealed class GetBalanceHandler(IWalletDbContext db)
 }
 
 /// <summary>
-/// Extrato com paginação por cursor. O cursor é o id do último lançamento visto
-/// (sequencial, gerado pelo banco), e cada página pede "lançamentos com id menor
-/// que o cursor". Lançamentos novos entram no topo e não deslocam as páginas
-/// seguintes, ao contrário de OFFSET.
+/// Extrato paginado pelo id do último lançamento visto: lançamentos novos entram
+/// no topo e não deslocam as páginas seguintes, ao contrário de OFFSET.
 /// </summary>
 public sealed class GetStatementHandler(IWalletDbContext db)
 {

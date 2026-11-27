@@ -8,10 +8,8 @@ using WalletLedger.Infrastructure.Persistence.Seed;
 namespace WalletLedger.Infrastructure.Persistence;
 
 /// <summary>
-/// Aplica as migrations pendentes e garante os dados iniciais quando a aplicação
-/// sobe, antes de o servidor aceitar requisições. Fica num serviço (e não solto no
-/// Program.cs) para que ferramentas que só montam a aplicação, como a geração do
-/// contrato OpenAPI no build, não precisem de banco.
+/// Aplica as migrations e os dados iniciais antes de o servidor aceitar requisições.
+/// Fica num serviço para a geração do contrato no build não precisar de banco.
 /// </summary>
 internal sealed class DatabaseInitializer(IServiceScopeFactory scopes, IConfiguration configuration, TimeProvider clock) : IHostedService
 {

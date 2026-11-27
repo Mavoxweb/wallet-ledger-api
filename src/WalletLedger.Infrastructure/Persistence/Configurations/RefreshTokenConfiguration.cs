@@ -11,7 +11,6 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
         builder.ToTable("refresh_tokens");
         builder.HasKey(t => t.Id);
 
-        // SHA-256 em hexadecimal: 64 caracteres.
         builder.Property(t => t.TokenHash).HasMaxLength(64).IsFixedLength().IsRequired();
         builder.HasIndex(t => t.TokenHash).IsUnique();
         builder.HasIndex(t => t.UserId);

@@ -27,9 +27,7 @@ public sealed partial class IdempotencyCleanupService(
     }
 
     /// <summary>
-    /// Uma rodada de limpeza que nunca lança exceção. Uma exceção num BackgroundService
-    /// para a aplicação inteira, e um banco reiniciando não pode derrubar a API por causa
-    /// de uma tarefa de manutenção. A próxima rodada tenta de novo.
+    /// Nunca lança: uma exceção num BackgroundService derruba a aplicação inteira.
     /// </summary>
     public async Task<bool> RunOnceAsync(CancellationToken cancellationToken)
     {

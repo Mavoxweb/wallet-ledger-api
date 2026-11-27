@@ -45,7 +45,6 @@ public sealed class RegisterHandler(
         db.Users.Add(user);
         db.Accounts.Add(account);
 
-        // Um único SaveChanges grava usuário e conta numa transação só.
         await db.SaveChangesAsync(cancellationToken);
 
         return new RegisterResponse(user.Id, account.Id);

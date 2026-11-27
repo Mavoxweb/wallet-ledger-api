@@ -20,7 +20,6 @@ public sealed class CreatePixKeyHandler(IWalletDbContext db, IAccountLocker lock
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // Valida e normaliza antes de abrir transação.
         var key = PixKey.Create(accountId, request.Type, request.Value, clock.GetUtcNow());
 
         // Trava a conta para que dois cadastros simultâneos não passem juntos do limite de 5.
