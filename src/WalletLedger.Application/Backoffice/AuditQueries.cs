@@ -17,6 +17,7 @@ public sealed record AuditItem(
     AuditAction Action,
     Guid AccountId,
     string AccountNumber,
+    string? AccountHolderName,
     Guid? TransactionId,
     string Reason,
     JsonElement Details);
@@ -45,11 +46,19 @@ public sealed class GetAuditHandler(IWalletDbContext db)
         var query =
             from entry in db.AuditEntries.AsNoTracking()
             join actor in db.Users.AsNoTracking() on entry.ActorUserId equals actor.Id
-            select new { entry, actor.Name };
+            join account in db.Accounts.AsNoTracking() on entry.AccountId equals account.Id
+            join holder in db.Users.AsNoTracking() on account.OwnerUserId equals holder.Id into holders
+            from holder in holders.DefaultIfEmpty()
+            select new { entry, actor.Name, HolderName = holder != null ? holder.Name : null };
 
         if (accountId is not null)
         {
-            query = query.Where(x => x.entry.AccountId == accountId);
+            // A conta do registro ou qualquer conta da transação: um estorno aparece
+            // na trilha de quem pagou e de quem recebeu.
+            query = query.Where(x =>
+                x.entry.AccountId == accountId ||
+                (x.entry.TransactionId != null &&
+                 db.Postings.Any(p => p.TransactionId == x.entry.TransactionId && p.AccountId == accountId)));
         }
 
         if (actorId is not null)
@@ -87,6 +96,7 @@ public sealed class GetAuditHandler(IWalletDbContext db)
                 x.entry.Action,
                 x.entry.AccountId,
                 Backoffice.AccountNumber.Of(x.entry.AccountId),
+                x.HolderName,
                 x.entry.TransactionId,
                 x.entry.Reason,
                 details.RootElement.Clone());

@@ -22,6 +22,7 @@ public sealed class AuditTests(ApiFactory factory)
         string Action,
         Guid AccountId,
         string AccountNumber,
+        string? AccountHolderName,
         Guid? TransactionId,
         string Reason,
         JsonElement Details);
@@ -54,6 +55,7 @@ public sealed class AuditTests(ApiFactory factory)
         reversal.ActorName.ShouldNotBeNullOrWhiteSpace();
         reversal.ActorRole.ShouldBe("admin");
         reversal.AccountNumber.ShouldBe(a.User.AccountId.ToString("N")[^4..]);
+        reversal.AccountHolderName.ShouldBe("Cliente Teste");
         reversal.Details.GetProperty("amountCents").GetInt64().ShouldBe(5_000);
         all.Items[2].Reason.ShouldBe(BlockReason);
 
@@ -109,5 +111,36 @@ public sealed class AuditTests(ApiFactory factory)
         var response = await admin.GetAsync("/api/v1/backoffice/audit?cursor=xyz");
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Estorno_aparece_na_trilha_das_duas_contas()
+    {
+        var a = await FundedCustomerAsync(factory, 10_000);
+        var b = await FundedCustomerAsync(factory, 100);
+        var pixId = await PixAsync(a.Client, b.EvpKey, 2_000);
+        var admin = await StaffUsers.AdminAsync(factory);
+        (await ReverseAsync(admin, pixId)).EnsureSuccessStatusCode();
+
+        foreach (var accountId in new[] { a.User.AccountId, b.User.AccountId })
+        {
+            var page = (await admin.GetFromJsonAsync<Page>($"/api/v1/backoffice/audit?accountId={accountId}"))!;
+            page.Items.ShouldContain(i => i.TransactionId == pixId && i.Action == "transactionReversed");
+        }
+    }
+
+    [Fact]
+    public async Task Filtro_por_conta_nao_traz_estorno_de_outras_contas()
+    {
+        var a = await FundedCustomerAsync(factory, 10_000);
+        var b = await FundedCustomerAsync(factory, 100);
+        var outsider = await TestUsers.RegisterAndLoginAsync(factory);
+        var pixId = await PixAsync(a.Client, b.EvpKey, 2_000);
+        var admin = await StaffUsers.AdminAsync(factory);
+        (await ReverseAsync(admin, pixId)).EnsureSuccessStatusCode();
+
+        var page = (await admin.GetFromJsonAsync<Page>($"/api/v1/backoffice/audit?accountId={outsider.AccountId}"))!;
+
+        page.Items.ShouldBeEmpty();
     }
 }
