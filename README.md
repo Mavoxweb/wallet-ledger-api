@@ -3,7 +3,7 @@
 [![CI](https://github.com/Mavoxweb/wallet-ledger-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Mavoxweb/wallet-ledger-api/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
-![Testes](https://img.shields.io/badge/testes-144-2ea44f)
+![Testes](https://img.shields.io/badge/testes-195-2ea44f)
 
 API de uma **carteira digital** com **livro-razão de partidas dobradas**: contas, depósitos, transferências PIX por chave, extrato e QR code de cobrança no padrão BR Code.
 
@@ -36,6 +36,7 @@ O foco não é ter muitas telas nem muitos recursos. É **não errar com dinheir
 | **Rastreabilidade total** | Razão de partidas dobradas: todo lançamento tem contrapartida, a soma global é sempre zero, e nada é editado, apenas estornado | [ADR 0003](docs/adr/0003-partidas-dobradas.md) |
 | **Precisão monetária** | Valores como inteiros em centavos, sem ponto flutuante em nenhuma camada | [ADR 0002](docs/adr/0002-dinheiro-em-centavos.md) |
 | **Arquitetura** | Clean Architecture em 4 projetos, com as regras no domínio e sem camadas desnecessárias | [ADR 0001](docs/adr/0001-clean-architecture.md) |
+| **Auditoria confiável** | Bloqueio, desbloqueio e estorno gravam a trilha **na mesma transação** da ação, com motivo obrigatório. O estorno é uma transação nova com lançamentos opostos, e dois estornos simultâneos viram um sucesso e um `409` | [ADR 0007](docs/adr/0007-auditoria-na-mesma-transacao.md) |
 | **Contrato versionado** | OpenAPI gerado do código, verificado no CI e publicado a cada versão para os clientes | [ADR 0006](docs/adr/0006-contrato-gerado-do-codigo.md) |
 
 Além disso:
@@ -139,6 +140,17 @@ O caminho mais rápido para ver tudo funcionando é o [`requests.http`](requests
 | `POST` | `/api/v1/transfers/pix` | Transferência por chave · exige `Idempotency-Key` |
 | `POST` | `/api/v1/pix/charges` | QR code de cobrança no padrão BR Code |
 
+**Backoffice** (perfis `Operator` e `Admin`; um cliente recebe `403`):
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/api/v1/backoffice/accounts` | Busca por CPF, e-mail, final da conta ou nome, com paginação por cursor |
+| `GET` | `/api/v1/backoffice/accounts/{id}` | Titular (CPF mascarado), status, saldo e chaves PIX |
+| `GET` | `/api/v1/backoffice/accounts/{id}/statement` | Extrato de qualquer conta, com status e se ainda pode ser estornada |
+| `POST` | `/api/v1/backoffice/accounts/{id}/block` · `/unblock` | Bloqueia ou desbloqueia, com motivo obrigatório |
+| `POST` | `/api/v1/backoffice/transactions/{id}/reversal` | Estorno · só `Admin` · exige `Idempotency-Key` e motivo |
+| `GET` | `/api/v1/backoffice/audit` | Trilha de auditoria, filtrável por conta, autor e ação |
+
 Valores sempre em **centavos** (`amountCents`). Erros no formato **ProblemDetails** (RFC 9457), com um `code` estável para as regras de negócio (`insufficient_funds`, `account_not_active`, `self_transfer`…), para o app decidir a mensagem sem depender do texto.
 
 ## Como testar
@@ -149,11 +161,14 @@ Pré-requisitos: **.NET 10 SDK** e **Docker em execução** (os testes de integr
 dotnet test
 ```
 
-São **144 testes** (58 de domínio e 86 de integração). Os principais:
+São **195 testes** (66 de domínio e 129 de integração). Os principais:
 
 - **100 transferências cruzadas simultâneas**: nenhum saldo negativo, nenhum deadlock, total das contas inalterado e o razão somando zero. Para ter certeza de que o teste não passa "por sorte", quebrei a ordem do travamento de propósito: ele falhou com deadlocks, como deveria.
 - **Duas requisições paralelas com a mesma chave de idempotência** → exatamente uma transação.
 - **Limite diário de depósito virando à meia-noite de Brasília**, com o relógio controlado no teste (nenhum código usa `DateTime.Now`).
+- **Dois estornos simultâneos da mesma transação** → exatamente um estorno, um `409` e o razão somando zero.
+- **Estorno quando o destino já gastou o dinheiro** → `422 insufficient_funds`, sem nada gravado.
+- **Cliente bloqueado com o app aberto** → o próximo PIX falha com `account_not_active`, sem precisar de novo login.
 - **Detecção de reuso de refresh token.**
 - **QR code comparado com o exemplo oficial** do Manual do BR Code, caractere por caractere.
 
@@ -167,7 +182,8 @@ Escopo atual:
 
 O que vem a seguir:
 - [x] [App Flutter do correntista](https://github.com/Mavoxweb/wallet-ledger-mobile) (saldo, PIX, extrato, leitura de QR code, biometria)
-- [ ] Backoffice Angular (busca de contas, bloqueio, estorno, trilha de auditoria)
+- [x] Endpoints de backoffice (busca de contas, bloqueio, estorno, trilha de auditoria)
+- [ ] Backoffice Angular consumindo esses endpoints
 - [ ] Limites de PIX diário e noturno, como a regra do Banco Central
 - [ ] Outbox e notificações em tempo real (SignalR)
 - [ ] Demo online com PostgreSQL serverless (Neon)

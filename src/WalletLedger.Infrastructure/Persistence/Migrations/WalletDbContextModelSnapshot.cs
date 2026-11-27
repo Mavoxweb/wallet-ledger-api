@@ -195,6 +195,10 @@ namespace WalletLedger.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(140)")
                         .HasColumnName("description");
 
+                    b.Property<Guid?>("ReversedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)

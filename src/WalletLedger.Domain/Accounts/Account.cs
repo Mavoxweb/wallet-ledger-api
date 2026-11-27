@@ -78,6 +78,26 @@ public sealed class Account
         BalanceCents = checked(BalanceCents + amount.Cents);
     }
 
+    /// <summary>
+    /// Lançamento de estorno. Vale mesmo com a conta bloqueada (devolver dinheiro de
+    /// golpe é justamente o caso), mas conta de cliente continua sem ficar negativa.
+    /// </summary>
+    public void ApplyReversal(long signedCents)
+    {
+        if (signedCents == 0)
+        {
+            throw new DomainException("invalid_amount", "Lançamento com valor zero.");
+        }
+
+        var newBalance = checked(BalanceCents + signedCents);
+        if (newBalance < 0 && !AllowsNegative)
+        {
+            throw new DomainException("insufficient_funds", "Saldo insuficiente.");
+        }
+
+        BalanceCents = newBalance;
+    }
+
     public void EnsureActive()
     {
         if (Status != AccountStatus.Active)

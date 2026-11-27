@@ -34,6 +34,8 @@ public static class DependencyInjection
         services.AddScoped<BackofficeStatementHandler>();
         services.AddScoped<BlockAccountHandler>();
         services.AddScoped<UnblockAccountHandler>();
+        services.AddScoped<ReverseTransactionHandler>();
+        services.AddScoped<GetAuditHandler>();
 
         return services;
     }
